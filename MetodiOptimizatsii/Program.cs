@@ -18,9 +18,6 @@ namespace MetodiOptimizatsii
             Gesse.Add(new List<Func<Vector, double>>());
             Gesse[1].Add((Vector x) => -200);
             Gesse[1].Add((Vector x) => 200);
-            function f1 = new function(z, 2, grads, Gesse);
-            f1.NumericDerivatives = true;
-            //var res = Methods.Newton(f1, new Vector(2, 0.8), 1e-15, 10000);
 
             Func<Vector, double> z1 = (Vector x) => 100 * (x.v[1] - x.v[0] * x.v[0]) * (x.v[1] - x.v[0] * x.v[0]) + (1 - x.v[0]) * (1 - x.v[0]);
             List<Func<Vector, double>> grads1 = new();
@@ -33,17 +30,39 @@ namespace MetodiOptimizatsii
             Gesse1.Add(new List<Func<Vector, double>>());
             Gesse1[1].Add((Vector x) => -400 * x.v[0]);
             Gesse1[1].Add((Vector x) => 200);
-            function f2 = new function(z1, 2, grads1, Gesse1);
-            //var res1 = Methods.Broyden(f2, new Vector(2), 1e-15, 10000);
 
             Func<Vector, double> fuck3 = (Vector x) =>
              {
                  return -(3 / (1 + (x.v[0] - 2) * (x.v[0] - 2) + (x.v[1] - 3) * (x.v[1] - 3) / 4) + 1 / (1 + (x.v[0] - 1) * (x.v[0] - 1) / 4 + (x.v[1] - 1) * (x.v[1] - 1)));
              };
-            function f3 = new function(fuck3, 2, null, null);
+            function f1 = new function(z, 2, grads, Gesse);
+            f1.NumericDerivatives = false;
+            function f2 = new function(z1, 2, grads1, Gesse1);
+            f2.NumericDerivatives = false;
+            function f3 = new function(z1, 2, null, null);
             f3.NumericDerivatives = true;
             var q = f3.grad(new Vector(2, 0.1));
-            var resfuck = Methods.Newton(f3, new Vector(2,0.1), 1e-10, 10000);
+            Vector x0 = new(2);
+            x0.v[0] = 3;
+            x0.v[1] = 4;
+
+            var resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-1, 10000,1);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-3, 10000,1);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-5, 10000,1);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-7, 10000,1);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            Console.WriteLine("--------------");
+            resfuck = Methods.Newton(f3, x0, 1e-1, 10000);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            resfuck = Methods.Newton(f3, x0, 1e-3, 10000);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            resfuck = Methods.Newton(f3, x0, 1e-5, 10000);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            resfuck = Methods.Newton(f3, x0, 1e-7, 10000);
+            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
             Console.WriteLine("Hello World!");
         }
     }
@@ -193,8 +212,8 @@ namespace MetodiOptimizatsii
         {
             int n = x0.dim;
             int k = 0;
-            Matrix A = func.Gesse(x0);
-            Vector b = -func.grad(x0);
+            Matrix A = func.Gesse(x0);//1+n+n^2
+            Vector b = -func.grad(x0);//n+1
             while (b.norm > eps && k < maxiter)
             {
                 SolveSlae(A, b);
@@ -233,6 +252,7 @@ namespace MetodiOptimizatsii
                 deltagrad = curgrad - lastgrad;
                 k++;
             }
+            Console.WriteLine(k);
             return curx;
         }
         public static Vector Broyden(function func, Vector x0, double eps, int maxiter)
@@ -268,7 +288,7 @@ namespace MetodiOptimizatsii
     public class function
     {
         public bool NumericDerivatives { get; set; } = false;
-        public double diffeps { get; set; } = 1e-5;
+        public double diffeps { get; set; } = 1e-7;
         public Func<Vector, double> func;
         public int dim { get; init; }
         List<Func<Vector, double>> gradlist;
