@@ -1,68 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace MetodiOptimizatsii
 {
+    public enum TypesOfPenalty
+    {
+        Quadratic,
+        Linear
+    }
+    public enum TypesOfBoundary
+    {
+        Logarythmic,
+        Fractional
+    }
     class Program
     {
         static void Main(string[] args)
         {
-            Func<Vector, double> z = (Vector x) => 100 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + (1 - x.v[0]) * (1 - x.v[0]);
-            List<Func<Vector, double>> grads = new();
-            grads.Add((Vector x) => -200 * (x.v[1] - x.v[0]) - 2 * (1 - x.v[0]));
-            grads.Add((Vector x) => 200 * (x.v[1] - x.v[0]));
-            List<List<Func<Vector, double>>> Gesse = new();
-            Gesse.Add(new List<Func<Vector, double>>());
-            Gesse[0].Add((Vector x) => 202);
-            Gesse[0].Add((Vector x) => -200);
-            Gesse.Add(new List<Func<Vector, double>>());
-            Gesse[1].Add((Vector x) => -200);
-            Gesse[1].Add((Vector x) => 200);
-
-            Func<Vector, double> z1 = (Vector x) => 100 * (x.v[1] - x.v[0] * x.v[0]) * (x.v[1] - x.v[0] * x.v[0]) + (1 - x.v[0]) * (1 - x.v[0]);
-            List<Func<Vector, double>> grads1 = new();
-            grads1.Add((Vector x) => -400 * (x.v[1] * x.v[0] - x.v[0] * x.v[0] * x.v[0]) - 2 * (1 - x.v[0]));
-            grads1.Add((Vector x) => 200 * (x.v[1] - x.v[0] * x.v[0]));
-            List<List<Func<Vector, double>>> Gesse1 = new();
-            Gesse1.Add(new List<Func<Vector, double>>());
-            Gesse1[0].Add((Vector x) => -400 * x.v[1] + 1200 * x.v[0] * x.v[0] + 2);
-            Gesse1[0].Add((Vector x) => -400 * x.v[0]);
-            Gesse1.Add(new List<Func<Vector, double>>());
-            Gesse1[1].Add((Vector x) => -400 * x.v[0]);
-            Gesse1[1].Add((Vector x) => 200);
-
-            Func<Vector, double> fuck3 = (Vector x) =>
-             {
-                 return -(3 / (1 + (x.v[0] - 2) * (x.v[0] - 2) + (x.v[1] - 3) * (x.v[1] - 3) / 4) + 1 / (1 + (x.v[0] - 1) * (x.v[0] - 1) / 4 + (x.v[1] - 1) * (x.v[1] - 1)));
-             };
-            function f1 = new function(z, 2, grads, Gesse);
-            f1.NumericDerivatives = false;
-            function f2 = new function(z1, 2, grads1, Gesse1);
-            f2.NumericDerivatives = false;
-            function f3 = new function(z1, 2, null, null);
-            f3.NumericDerivatives = true;
-            var q = f3.grad(new Vector(2, 0.1));
-            Vector x0 = new(2);
-            x0.v[0] = 3;
-            x0.v[1] = 4;
-
-            var resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-1, 10000,1);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-3, 10000,1);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-5, 10000,1);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            resfuck = Methods.DavidonFletcherPauel(f3, x0, 1e-7, 10000,1);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            Console.WriteLine("--------------");
-            resfuck = Methods.Newton(f3, x0, 1e-1, 10000);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            resfuck = Methods.Newton(f3, x0, 1e-3, 10000);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            resfuck = Methods.Newton(f3, x0, 1e-5, 10000);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
-            resfuck = Methods.Newton(f3, x0, 1e-7, 10000);
-            Console.WriteLine($"{resfuck.v[0]} {resfuck.v[1]}");
+            List<Restriction> rests = new();
+            rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
+            rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
+            Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
+            function func = new function(ffunkk, 2);
+            Vector x0 = new Vector(2, 0);
+            x0.v[0] = 100;
+            x0.v[1] = 100;
+            var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
+            //List<UnequalityRestriction> rests = new();
+            //rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
+            //var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);
             Console.WriteLine("Hello World!");
         }
     }
@@ -128,7 +95,7 @@ namespace MetodiOptimizatsii
             }
             return (x1 + x2) / 2;
         }
-        public static void findsectionwithminimum(Func<double, double> func, out double a, out double b, double x0, double delta)
+        public static void findsectionwithminimum(Func<double, double> func, out double a, out double b, double x0, double delta, int maxiter)
         {
             a = 0;
             b = 0;
@@ -149,7 +116,7 @@ namespace MetodiOptimizatsii
             }
             int k = 3;
             bool flag = true;
-            while (flag)
+            while (flag && k < maxiter)
             {
                 h *= 2;
                 x2 = x1 + h;
@@ -284,6 +251,102 @@ namespace MetodiOptimizatsii
             }
             return curx;
         }
+        public static Vector Gauss(function func, Vector x0, double eps, int maxiter)
+        {
+            double flast = 0;
+            int k = 0;
+            double fcur = func.func(x0);
+            int n = func.dim;
+            Vector curpoint = x0;
+            do
+            {
+                flast = fcur;
+                for (int i = 0; i < n; i++)
+                {
+                    Vector dir = new Vector(n, 0);
+                    dir.v[i] = 1;
+                    curpoint = curpoint + func.DirectionMinimum(curpoint, dir) * dir;
+                }
+                fcur = func.func(curpoint);
+                k++;
+            } while (Math.Abs(fcur - flast) > eps && k < maxiter);
+            return curpoint;
+        }
+        public static Vector PenaltyFunctions(function func, Vector x0, List<Restriction> restrictions, double eps, int maxiter, TypesOfPenalty penaltytype)
+        {
+            double penaltymultiplier = 1;
+            Vector curpoint = x0;
+            int k = 0;
+            int n = x0.dim;
+            double curpenalty = CalcPenalty(curpoint, restrictions, penaltytype);
+            do
+            {
+                function pfunc = new function(func.func, restrictions, penaltymultiplier, n, penaltytype);
+                curpoint = Gauss(pfunc, curpoint, 1e-15, maxiter);
+                curpenalty = CalcPenalty(curpoint, restrictions, penaltytype);
+                k++;
+                penaltymultiplier += k;
+                Console.WriteLine($"{k} {curpoint} {curpenalty}");
+            } while (curpenalty > eps && k < maxiter);
+            return curpoint;
+        }
+        public static Vector BoudaryFunctions(function func, Vector x0, List<UnequalityRestriction> restrictions, double eps, int maxiter, TypesOfBoundary type)
+        {
+            double penaltymultiplier = 100;
+            Vector curpoint = x0;
+            int k = 0;
+            int n = x0.dim;
+            double curpenalty = CalcPenalty(curpoint, restrictions, type);
+            do
+            {
+                function pfunc = new function(func.func, restrictions, penaltymultiplier, n, type);
+                curpoint = Gauss(pfunc, curpoint, eps, maxiter);
+                curpenalty = CalcPenalty(curpoint, restrictions, type);
+                penaltymultiplier /= 2;
+                k++;
+            } while (k < maxiter);
+            return curpoint;
+        }
+        public static double CalcPenalty(Vector x, List<Restriction> restrictions, TypesOfPenalty type)
+        {
+            double res = 0;
+            foreach (var item in restrictions)
+            {
+                switch (type)
+                {
+                    case TypesOfPenalty.Quadratic:
+                        res += item.GetPenaltyQuard(x);
+                        break;
+                    case TypesOfPenalty.Linear:
+                        res += item.GetPenaltyLinear(x);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+            return res;
+        }
+        public static double CalcPenalty(Vector x, List<UnequalityRestriction> restrictions, TypesOfBoundary type)
+        {
+            double res = 0;
+            foreach (var item in restrictions)
+            {
+                switch (type)
+                {
+                    case TypesOfBoundary.Fractional:
+                        res += item.GetBoundaryFrac(x);
+                        break;
+                    case TypesOfBoundary.Logarythmic:
+                        res += item.GetBoundaryLog(x);
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+            return res;
+        }
     }
     public class function
     {
@@ -323,7 +386,7 @@ namespace MetodiOptimizatsii
         {
             int n = dim;
             var res = new Matrix(n);
-            if(NumericDerivatives)
+            if (NumericDerivatives)
             {
                 var delta = new Vector(n);
                 for (int i = 0; i < n; i++)
@@ -359,15 +422,15 @@ namespace MetodiOptimizatsii
                     }
                 }
             }
-            
+
             return res;
         }
         public double DirectionMinimum(Vector x0, Vector dir)
         {
             int n = x0.dim;
-            Func<double, double> function = (double lam) => func(x0 + lam * dir);
+            Func<double, double> function = (double lam) => func(x0 + lam * dir / dir.norm);
             double a, b;
-            Methods.findsectionwithminimum(function, out a, out b, 1, dir.norm);
+            Methods.findsectionwithminimum(function, out a, out b, 1, dir.norm, 10000);
             return Methods.Goldenratio(function, a, b, 1e-14);
         }
         public function(Func<Vector, double> func, int dim, List<Func<Vector, double>> gradlist, List<List<Func<Vector, double>>> gesseList)
@@ -376,6 +439,65 @@ namespace MetodiOptimizatsii
             this.dim = dim;
             this.gradlist = gradlist;
             GesseList = gesseList;
+        }
+        public function(Func<Vector, double> func, List<Restriction> penalties, double penaltymultiplier, int dim, TypesOfPenalty type)
+        {
+            this.dim = dim;
+            gradlist = new();
+            GesseList = new();
+            this.func = (Vector x) =>
+            {
+                double res = func(x);
+                foreach (var item in penalties)
+                {
+                    switch (type)
+                    {
+                        case TypesOfPenalty.Quadratic:
+                            res += penaltymultiplier * item.GetPenaltyQuard(x);
+                            break;
+                        case TypesOfPenalty.Linear:
+                            res += penaltymultiplier * item.GetPenaltyLinear(x);
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                return res;
+            };
+        }
+        public function(Func<Vector, double> func, List<UnequalityRestriction> penalties, double penaltymultiplier, int dim, TypesOfBoundary type)
+        {
+            this.dim = dim;
+            gradlist = new();
+            GesseList = new();
+            this.func = (Vector x) =>
+            {
+                double res = func(x);
+                foreach (var item in penalties)
+                {
+                    switch (type)
+                    {
+                        case TypesOfBoundary.Fractional:
+                            res += penaltymultiplier * item.GetBoundaryFrac(x);
+                            break;
+                        case TypesOfBoundary.Logarythmic:
+                            res += penaltymultiplier * item.GetBoundaryLog(x);
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                return res;
+            };
+        }
+        public function(Func<Vector, double> func, int dim)
+        {
+            this.func = func;
+            this.dim = dim;
+            gradlist = new();
+            GesseList = new();
         }
     }
     public class Vector
@@ -499,6 +621,26 @@ namespace MetodiOptimizatsii
             }
             return res;
         }
+        public static Vector operator /(Vector a, double b)
+        {
+            int n = a.dim;
+            var res = new Vector(n);
+            for (int i = 0; i < n; i++)
+            {
+                res.v[i] = a.v[i] / b;
+            }
+            return res;
+        }
+        public override string ToString()
+        {
+            StringBuilder res = new();
+            for (int i = 0; i < dim - 1; i++)
+            {
+                res.Append($"{v[i]} ");
+            }
+            res.Append($"{v[dim - 1]}");
+            return res.ToString();
+        }
     }
     public class Matrix
     {
@@ -621,5 +763,52 @@ namespace MetodiOptimizatsii
             return res;
         }
     }
+    public abstract class Restriction
+    {
+        protected Func<Vector, double> func;
 
+        protected Restriction(Func<Vector, double> func)
+        {
+            this.func = func;
+        }
+
+        public abstract double GetPenaltyQuard(Vector x);
+        public abstract double GetPenaltyLinear(Vector x);
+    }
+    public class EqualityRestriction : Restriction
+    {
+        public EqualityRestriction(Func<Vector, double> func) : base(func) { }
+
+        public override double GetPenaltyLinear(Vector x)
+        {
+            return Math.Abs(func(x));
+        }
+
+        public override double GetPenaltyQuard(Vector x)
+        {
+            return func(x) * func(x);
+        }
+    }
+    public class UnequalityRestriction : Restriction
+    {
+        public UnequalityRestriction(Func<Vector, double> func) : base(func) { }//g<=0
+
+        public override double GetPenaltyLinear(Vector x)
+        {
+            return (func(x) + Math.Abs(func(x))) / 2.0;
+        }
+
+        public override double GetPenaltyQuard(Vector x)
+        {
+            return (func(x) + Math.Abs(func(x))) * (func(x) + Math.Abs(func(x))) / 4.0;
+        }
+        public double GetBoundaryLog(Vector x)
+        {
+            return (-Math.Log(-(func(x))));
+        }
+        public double GetBoundaryFrac(Vector x)
+        {
+            return (-1 / func(x));
+        }
+    }
 }
