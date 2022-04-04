@@ -18,18 +18,17 @@ namespace MetodiOptimizatsii
     {
         static void Main(string[] args)
         {
-            List<Restriction> rests = new();
+            //List<Restriction> rests = new();
+            List<UnequalityRestriction> rests = new();
             rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
-            rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
+            //rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
             Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
             function func = new function(ffunkk, 2);
             Vector x0 = new Vector(2, 0);
-            x0.v[0] = 100;
-            x0.v[1] = 100;
-            var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
-            //List<UnequalityRestriction> rests = new();
-            //rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
-            //var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);
+            x0.v[0] = -100;
+            x0.v[1] = -100;
+            //var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
+            var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.3 -0.7
             Console.WriteLine("Hello World!");
         }
     }
@@ -304,6 +303,7 @@ namespace MetodiOptimizatsii
                 curpenalty = CalcPenalty(curpoint, restrictions, type);
                 penaltymultiplier /= 2;
                 k++;
+                Console.WriteLine($"{k} {curpoint} {curpenalty}");
             } while (k < maxiter);
             return curpoint;
         }
@@ -430,7 +430,7 @@ namespace MetodiOptimizatsii
             int n = x0.dim;
             Func<double, double> function = (double lam) => func(x0 + lam * dir / dir.norm);
             double a, b;
-            Methods.findsectionwithminimum(function, out a, out b, 1, dir.norm, 10000);
+            Methods.findsectionwithminimum(function, out a, out b, 1, 1e-7, 10000);
             return Methods.Goldenratio(function, a, b, 1e-14);
         }
         public function(Func<Vector, double> func, int dim, List<Func<Vector, double>> gradlist, List<List<Func<Vector, double>>> gesseList)
@@ -804,11 +804,11 @@ namespace MetodiOptimizatsii
         }
         public double GetBoundaryLog(Vector x)
         {
-            return (-Math.Log(-(func(x))));
+            return -Math.Log(-func(x));
         }
         public double GetBoundaryFrac(Vector x)
         {
-            return (-1 / func(x));
+            return -1 / func(x);
         }
     }
 }
