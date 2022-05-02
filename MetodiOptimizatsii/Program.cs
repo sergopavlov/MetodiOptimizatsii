@@ -26,7 +26,7 @@ namespace MetodiOptimizatsii
                      double res = 0;
                      for (int i = 0; i < 6; i++)
                      {
-                         res += C[i] / (1 + (x.v[0] - A[i]) * (x.v[0] - A[i]) + (x.v[1] - B[i]) * (x.v[1] - B[i]));
+                         res += -C[i] / (1 + (x.v[0] - A[i]) * (x.v[0] - A[i]) + (x.v[1] - B[i]) * (x.v[1] - B[i]));
                      }
                      return res;
                  };
@@ -48,15 +48,28 @@ namespace MetodiOptimizatsii
             //var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
             Vector a = new Vector(2, -10);
             Vector b = new Vector(2, 10);
-            var asdasd1 = Methods.RandomSearch1(slojno, a, b, 1e-2, 0.99);
-            var asdasd2 = Methods.RandomSearch2(slojno, a, b, 100, 1e-4, x0);
-            var asdasd3 = Methods.RandomSearch3(slojno, x0, 100, 1e-4);
+            slojno.counter = 0;
+
+            //var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
+            //Console.WriteLine(slojno.counter - 1);
+            //slojno.counter = 0;
+            //var r1 = slojno.Func(asdasd1);
+
+            var asdasd2 = Methods.RandomSearch1(slojno, a, b, 10, 1e-2, x0);
+            Console.WriteLine($"{asdasd2} {-slojno.Func(asdasd2)} {slojno.counter - 1}");
+            slojno.counter = 0;
+            var r2 = slojno.Func(asdasd2);
+
+            //var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
+            //Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
+            //slojno.counter = 0;
+            //var r3 = slojno.Func(asdasd3);
             Console.WriteLine("Hello World!");
         }
     }
     public static class Methods
     {
-        static Random rand = new Random();
+        static Random rand = new Random(Guid.NewGuid().GetHashCode());
         public static double Goldenratio(Func<double, double> func, double a, double b, double eps)
         {
             double k1 = (3 - Math.Sqrt(5)) / 2;
@@ -122,7 +135,7 @@ namespace MetodiOptimizatsii
             a = 0;
             b = 0;
             double x1 = x0 + delta;
-            double x2, f0, f1, f2;
+            double x2 =0, f0, f1, f2;
             double h;
             f0 = func(x0);
             f1 = func(x1);
@@ -156,6 +169,13 @@ namespace MetodiOptimizatsii
                     x1 = x2;
                     f1 = f2;
                 }
+            }
+            if(k==maxiter)
+            {
+                a = Math.Min(x0, x2);
+                b = Math.Max(x0, x2);
+                if (double.IsNaN(a) || double.IsInfinity(a) || double.IsNaN(b) || double.IsInfinity(b))
+                    throw new Exception();
             }
         }
         public static void SolveSlae(Matrix A, Vector b)
@@ -212,7 +232,7 @@ namespace MetodiOptimizatsii
                 A = func.Gesse(x0);
                 b = -func.grad(x0);
             }
-            Console.WriteLine($"Newton iterations: {k}");
+            //Console.WriteLine($"Newton iterations: {k}");
             return x0;
         }
         public static Vector DavidonFletcherPauel(function func, Vector x0, double eps, int maxiter, double omega)
@@ -277,7 +297,7 @@ namespace MetodiOptimizatsii
         {
             double flast = 0;
             int k = 0;
-            double fcur = func.func(x0);
+            double fcur = func.Func(x0);
             int n = func.dim;
             Vector dir = new Vector(n, 0);
             Vector curpoint = x0;
@@ -290,7 +310,7 @@ namespace MetodiOptimizatsii
                     curpoint = curpoint + func.DirectionMinimum(curpoint, dir) * dir;
                     dir.v[i] = 0;
                 }
-                fcur = func.func(curpoint);
+                fcur = func.Func(curpoint);
                 k++;
             } while (Math.Abs(fcur - flast) > eps && k < maxiter);
             return curpoint;
@@ -304,7 +324,7 @@ namespace MetodiOptimizatsii
             double curpenalty = CalcPenalty(curpoint, restrictions, penaltytype);
             do
             {
-                function pfunc = new function(func.func, restrictions, penaltymultiplier, n, penaltytype);
+                function pfunc = new function(func.Func, restrictions, penaltymultiplier, n, penaltytype);
                 curpoint = Gauss(pfunc, curpoint, 1e-15, maxiter);
                 curpenalty = CalcPenalty(curpoint, restrictions, penaltytype);
                 k++;
@@ -324,7 +344,7 @@ namespace MetodiOptimizatsii
             double curpenalty = CalcPenalty(lastpoint, restrictions, type);
             do
             {
-                function pfunc = new function(func.func, restrictions, penaltymultiplier, n, type);
+                function pfunc = new function(func.Func, restrictions, penaltymultiplier, n, type);
                 curpoint = Gauss(pfunc, lastpoint, eps, maxiter);
                 if ((curpoint - lastpoint).norm / curpoint.norm < eps)
                     flag = false;
@@ -376,7 +396,7 @@ namespace MetodiOptimizatsii
             }
             return res;
         }
-        public static Vector RandomSearch1(function func, Vector a, Vector b, double eps, double P)
+        public static Vector SimpleRandomSearch(function func, Vector a, Vector b, double eps, double P)
         {
             int dim = a.dim;
             double V = 1;
@@ -394,14 +414,14 @@ namespace MetodiOptimizatsii
                 res.v[i] = a.v[i] + rand.NextDouble() * (b.v[i] - a.v[i]);
             }
 
-            resval = func.func(curpoint);
+            resval = func.Func(curpoint);
             for (int k = 1; k < n; k++)
             {
                 for (int i = 0; i < dim; i++)
                 {
                     curpoint.v[i] = a.v[i] + rand.NextDouble() * (b.v[i] - a.v[i]);
                 }
-                curres = func.func(curpoint);
+                curres = func.Func(curpoint);
                 if (curres < resval)
                 {
                     for (int i = 0; i < dim; i++)
@@ -411,12 +431,13 @@ namespace MetodiOptimizatsii
                     resval = curres;
                 }
             }
+            Console.WriteLine($"{eps} {P} {n} {res.v[0]} {res.v[1]} {-func.Func(res)}");
             return res;
         }
-        public static Vector RandomSearch2(function func, Vector a, Vector b, double maxiter, double eps, Vector x0)
+        public static Vector RandomSearch1(function func, Vector a, Vector b, double maxiter, double eps, Vector x0)
         {
             Vector respoint = Newton(func, x0, eps, 1000);
-            double resvalue = func.func(respoint);
+            double resvalue = func.Func(respoint);
             int k = 0;
             int n = a.dim;
             Vector curpoint = new(n);
@@ -427,12 +448,44 @@ namespace MetodiOptimizatsii
                 {
                     curpoint.v[i] = a.v[i] + rand.NextDouble() * (b.v[i] - a.v[i]);
                 }
-                curvalue = func.func(curpoint);
+                curpoint = Newton(func, curpoint, eps, 1000);
+                curvalue = func.Func(curpoint);
+                if (curvalue < resvalue)
+                {
+                    k = 0;
+                    for (int i = 0; i < n; i++)
+                    {
+                        respoint.v[i] = curpoint.v[i];
+                    }
+                    resvalue = curvalue;
+                }
+                else
+                {
+                    k++;
+                }
+            }
+            return respoint;
+        }
+        public static Vector RandomSearch2(function func, Vector a, Vector b, double maxiter, double eps, Vector x0)
+        {
+            Vector respoint = Newton(func, x0, eps, 1000);
+            double resvalue = func.Func(respoint);
+            int k = 0;
+            int n = a.dim;
+            Vector curpoint = new(n);
+            double curvalue;
+            while (k < maxiter)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    curpoint.v[i] = a.v[i] + rand.NextDouble() * (b.v[i] - a.v[i]);
+                }
+                curvalue = func.Func(curpoint);
                 if (curvalue < resvalue)
                 {
                     k = 0;
                     respoint = Newton(func, curpoint, eps, 1000);
-                    resvalue = func.func(respoint);
+                    resvalue = func.Func(respoint);
                 }
                 else
                 {
@@ -444,7 +497,7 @@ namespace MetodiOptimizatsii
         public static Vector RandomSearch3(function func, Vector x0, double maxiter, double eps)
         {
             Vector respoint = Newton(func, x0, eps, 1000);
-            double resvalue = func.func(respoint);
+            double resvalue = func.Func(respoint);
             int k = 0;
             int n = x0.dim;
             Vector curdirection = new(n);
@@ -458,14 +511,14 @@ namespace MetodiOptimizatsii
                     curdirection.v[i] = -1 + 2 * rand.NextDouble();
                 }
                 curpoint = respoint + curdirection;
-                curvalue = func.func(curpoint);
+                curvalue = func.Func(curpoint);
                 int searchcounter = 0;
                 curdirection *= 2;
                 while (lastvalue < curvalue && searchcounter < maxiter)
                 {
                     curpoint += curdirection;
                     lastvalue = curvalue;
-                    curvalue = func.func(curpoint);
+                    curvalue = func.Func(curpoint);
                     curdirection *= 2;
                     searchcounter++;
                 }
@@ -474,10 +527,10 @@ namespace MetodiOptimizatsii
                 else
                 {
                     newpoint = Newton(func, curpoint, eps, 1000);
-                    if (func.func(newpoint) < resvalue)
+                    if (func.Func(newpoint) < resvalue)
                     {
                         respoint = newpoint;
-                        resvalue = func.func(respoint);
+                        resvalue = func.Func(respoint);
                         k = 0;
                     }
                     else
@@ -491,7 +544,13 @@ namespace MetodiOptimizatsii
     {
         public bool NumericDerivatives { get; set; } = false;
         public double diffeps { get; set; } = 1e-7;
-        public Func<Vector, double> func;
+        private Func<Vector, double> func;
+        public int counter = 0;
+        public double Func(Vector x)
+        {
+            counter++;
+            return func(x);
+        }
         public int dim { get; init; }
         List<Func<Vector, double>> gradlist;
         List<List<Func<Vector, double>>> GesseList;
@@ -502,12 +561,12 @@ namespace MetodiOptimizatsii
             if (NumericDerivatives)
             {
                 double f0 = 0, f1 = 0, delta = 0;
-                f0 = func(x0);
+                f0 = Func(x0);
                 for (int i = 0; i < n; i++)
                 {
                     delta = Math.Abs(x0.v[i]) * diffeps;
                     x0.v[i] += delta;
-                    f1 = func(x0);
+                    f1 = Func(x0);
                     x0.v[i] -= delta;
                     res.v[i] = (f1 - f0) / delta;
                 }
@@ -533,18 +592,18 @@ namespace MetodiOptimizatsii
                     delta.v[i] = Math.Abs(x0.v[i]) * diffeps;
                 }
                 double f0, f1, f2, f3;
-                f0 = func(x0);
+                f0 = Func(x0);
                 for (int i = 0; i < n; i++)
                 {
                     x0.v[i] += delta.v[i];
-                    f1 = func(x0);
+                    f1 = Func(x0);
                     x0.v[i] -= delta.v[i];
                     for (int j = 0; j < n; j++)
                     {
                         x0.v[j] += delta.v[j];
-                        f2 = func(x0);
+                        f2 = Func(x0);
                         x0.v[i] += delta.v[i];
-                        f3 = func(x0);
+                        f3 = Func(x0);
                         x0.v[j] -= delta.v[j];
                         x0.v[i] -= delta.v[i];
                         res.m[i][j] = (f3 - f2 - f1 + f0) / delta.v[i] / delta.v[j];
@@ -567,9 +626,9 @@ namespace MetodiOptimizatsii
         public double DirectionMinimum(Vector x0, Vector dir)
         {
             int n = x0.dim;
-            Func<double, double> function = (double lam) => func(x0 + lam * dir);
+            Func<double, double> function = (double lam) => Func(x0 + lam * dir);
             double a, b;
-            Methods.findsectionwithminimum(function, out a, out b, 1, 1e-7, 10000);
+            Methods.findsectionwithminimum(function, out a, out b, 1, 1e-2, 10000);
             return Methods.Goldenratio(function, a, b, 1e-14);
         }
         public function(Func<Vector, double> func, int dim, List<Func<Vector, double>> gradlist, List<List<Func<Vector, double>>> gesseList)
