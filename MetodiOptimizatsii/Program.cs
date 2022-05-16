@@ -18,7 +18,8 @@ namespace MetodiOptimizatsii
     {
         static void Main(string[] args)
         {
-            double[] C = new double[] { 1, 2, 10, 5, 7, 9 };
+            #region shit
+            /*double[] C = new double[] { 1, 2, 10, 5, 7, 9 };
             double[] A = new double[] { 0, 0, 3, -7, 6, 6 };
             double[] B = new double[] { -1, -4, -2, -6, -10, 1 };
             Func<Vector, double> fank = (Vector x) =>
@@ -30,13 +31,13 @@ namespace MetodiOptimizatsii
                      }
                      return res;
                  };
-            //List<Restriction> rests = new();
+            List<Restriction> rests = new();
             List<UnequalityRestriction> rests = new();
             rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
-            //rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
+            rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
             Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
             function func = new function(ffunkk, 2);
-            function slojno= new function(fank, 2);
+            function slojno = new function(fank, 2);
             slojno.NumericDerivatives = true;
             slojno.diffeps = 1e-4;
             func.NumericDerivatives = true;
@@ -44,26 +45,32 @@ namespace MetodiOptimizatsii
             Vector x0 = new Vector(2, 0);
             x0.v[0] = 5;
             x0.v[1] = -5;
-            //var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
-            //var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
+            var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
+            var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
             Vector a = new Vector(2, -10);
             Vector b = new Vector(2, 10);
             slojno.counter = 0;
 
-            //var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
-            //Console.WriteLine(slojno.counter - 1);
-            //slojno.counter = 0;
-            //var r1 = slojno.Func(asdasd1);
+            var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
+            Console.WriteLine(slojno.counter - 1);
+            slojno.counter = 0;
+            var r1 = slojno.Func(asdasd1);
 
             var asdasd2 = Methods.RandomSearch1(slojno, a, b, 10, 1e-2, x0);
             Console.WriteLine($"{asdasd2} {-slojno.Func(asdasd2)} {slojno.counter - 1}");
             slojno.counter = 0;
             var r2 = slojno.Func(asdasd2);
 
-            //var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
-            //Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
-            //slojno.counter = 0;
-            //var r3 = slojno.Func(asdasd3);
+            var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
+            Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
+            slojno.counter = 0;
+            var r3 = slojno.Func(asdasd3);
+
+            Func<double, double> funcyion = (x) => Math.Pow(x - 2, 4);//x * x * x * x * x + 4 * x * x * x * x - 10 * x * x * x - 5 * x * x + 10 * x + 1
+            double result = Methods.QuadraticInterpolation(funcyion, 10, 1e-3, 1e-7);*/
+            #endregion
+            Func<double, double> funk = (x) => Math.Pow(x-4,4)+2;
+            double result = Methods.QuadraticInterpolation(funk, 4, 1e-4);
             Console.WriteLine("Hello World!");
         }
     }
@@ -130,12 +137,31 @@ namespace MetodiOptimizatsii
             }
             return (x1 + x2) / 2;
         }
+        public static double QuadraticInterpolation(Func<double, double> func, double x0, double eps)
+        {
+            int k = 0;
+            double h = eps;
+            double f0 = func(x0 - h), f1 = func(x0), f2 = func(x0 + h);
+            double xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+            k++;
+            while (Math.Abs(x0 - xnext) > eps)
+            {
+                x0 = xnext;
+                f0 = func(x0 - h);
+                f1 = func(x0);
+                f2 = func(x0 + h);
+                xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+                k++;
+            }
+            Console.WriteLine(k);
+            return xnext;
+        }
         public static void findsectionwithminimum(Func<double, double> func, out double a, out double b, double x0, double delta, int maxiter)
         {
             a = 0;
             b = 0;
             double x1 = x0 + delta;
-            double x2 =0, f0, f1, f2;
+            double x2 = 0, f0, f1, f2;
             double h;
             f0 = func(x0);
             f1 = func(x1);
@@ -170,7 +196,7 @@ namespace MetodiOptimizatsii
                     f1 = f2;
                 }
             }
-            if(k==maxiter)
+            if (k == maxiter)
             {
                 a = Math.Min(x0, x2);
                 b = Math.Max(x0, x2);
@@ -224,11 +250,13 @@ namespace MetodiOptimizatsii
             int k = 0;
             Matrix A = func.Gesse(x0);//1+n+n^2
             Vector b = -func.grad(x0);//n+1
+            Console.WriteLine($"{k} {x0}");
             while (b.norm > eps && k < maxiter)
             {
                 SolveSlae(A, b);
                 x0 = x0 + b * func.DirectionMinimum(x0, b);
                 k++;
+                Console.WriteLine($"{k} {x0}");
                 A = func.Gesse(x0);
                 b = -func.grad(x0);
             }
@@ -240,6 +268,7 @@ namespace MetodiOptimizatsii
             int n = x0.dim;
             Matrix Eta = new Matrix(n, 1);
             int k = 0;
+            Console.WriteLine($"{k} {x0}");
             Vector lastgrad = func.grad(x0);
             Vector xlast = x0;
             Vector deltax = omega * (Eta * lastgrad);
@@ -249,6 +278,7 @@ namespace MetodiOptimizatsii
             Vector curgrad = func.grad(curx);
             Vector deltagrad = curgrad - lastgrad;
             k++;
+            Console.WriteLine($"{k} {curx}");
             while (curgrad.norm > eps && k < maxiter)
             {
                 Eta += ((deltax ^ deltax) / (deltax * deltagrad)) / omega - Eta * (deltagrad ^ deltagrad) * Eta.Transpose() / (deltagrad * (Eta * deltagrad));
@@ -261,6 +291,7 @@ namespace MetodiOptimizatsii
                 curgrad = func.grad(curx);
                 deltagrad = curgrad - lastgrad;
                 k++;
+                Console.WriteLine($"{k} {curx}");
             }
             return curx;
         }
@@ -631,6 +662,7 @@ namespace MetodiOptimizatsii
             Methods.findsectionwithminimum(function, out a, out b, 1, 1e-2, 10000);
             return Methods.Goldenratio(function, a, b, 1e-14);
         }
+
         public function(Func<Vector, double> func, int dim, List<Func<Vector, double>> gradlist, List<List<Func<Vector, double>>> gesseList)
         {
             this.func = func;
