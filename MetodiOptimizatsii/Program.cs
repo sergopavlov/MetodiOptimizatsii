@@ -19,7 +19,7 @@ namespace MetodiOptimizatsii
         static void Main(string[] args)
         {
             #region shit
-            /*double[] C = new double[] { 1, 2, 10, 5, 7, 9 };
+            double[] C = new double[] { 1, 2, 10, 5, 7, 9 };
             double[] A = new double[] { 0, 0, 3, -7, 6, 6 };
             double[] B = new double[] { -1, -4, -2, -6, -10, 1 };
             Func<Vector, double> fank = (Vector x) =>
@@ -31,46 +31,53 @@ namespace MetodiOptimizatsii
                      }
                      return res;
                  };
-            List<Restriction> rests = new();
-            List<UnequalityRestriction> rests = new();
-            rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
-            rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
+            //List<Restriction> rests = new();
+            //List<UnequalityRestriction> rests2 = new();
+            //rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
+            //rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
             Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
-            function func = new function(ffunkk, 2);
-            function slojno = new function(fank, 2);
-            slojno.NumericDerivatives = true;
-            slojno.diffeps = 1e-4;
-            func.NumericDerivatives = true;
+            List<Func<Vector, double>> grad = new();
+            grad.Add((x) => -8 * (x.v[1] - x.v[0]) + 6 * (x.v[0] - 1));
+            grad.Add((x) => 8 * (x.v[1] - x.v[0]));
+            List<List<Func<Vector, double>>> Gesse = new();
+            Gesse.Add(new());
+            Gesse.Add(new());
+            Gesse[0].Add((x) => -2);
+            Gesse[0].Add((x) => -8);
+            Gesse[1].Add((x) => -8);
+            Gesse[1].Add((x) => 8);
+            function func = new function(ffunkk, 2, grad, Gesse);
+            //function slojno = new function(fank, 2);
+            //slojno.NumericDerivatives = true;
+            //slojno.diffeps = 1e-4;
+            func.NumericDerivatives = false;
             func.diffeps = 1e-3;
             Vector x0 = new Vector(2, 0);
             x0.v[0] = 5;
             x0.v[1] = -5;
-            var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
-            var res = Methods.BoudaryFunctions(func, x0, rests, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
-            Vector a = new Vector(2, -10);
-            Vector b = new Vector(2, 10);
-            slojno.counter = 0;
+            func.SearchType = function.OneDimensionSearch.QuadraticInterpollation;
+            var r4 = Methods.Newton(func, x0, 1e-7, 100);
+            //var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
+            //var res2 = Methods.BoudaryFunctions(func, x0, rests2, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
+            //Vector a = new Vector(2, -10);
+            //Vector b = new Vector(2, 10);
+            //slojno.counter = 0;
 
-            var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
-            Console.WriteLine(slojno.counter - 1);
-            slojno.counter = 0;
-            var r1 = slojno.Func(asdasd1);
+            //var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
+            //Console.WriteLine(slojno.counter - 1);
+            //slojno.counter = 0;
+            //var r1 = slojno.Func(asdasd1);
 
-            var asdasd2 = Methods.RandomSearch1(slojno, a, b, 10, 1e-2, x0);
-            Console.WriteLine($"{asdasd2} {-slojno.Func(asdasd2)} {slojno.counter - 1}");
-            slojno.counter = 0;
-            var r2 = slojno.Func(asdasd2);
+            //var asdasd2 = Methods.RandomSearch1(slojno, a, b, 10, 1e-2, x0);
+            //Console.WriteLine($"{asdasd2} {-slojno.Func(asdasd2)} {slojno.counter - 1}");
+            //slojno.counter = 0;
+            //var r2 = slojno.Func(asdasd2);
 
-            var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
-            Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
-            slojno.counter = 0;
-            var r3 = slojno.Func(asdasd3);
-
-            Func<double, double> funcyion = (x) => Math.Pow(x - 2, 4);//x * x * x * x * x + 4 * x * x * x * x - 10 * x * x * x - 5 * x * x + 10 * x + 1
-            double result = Methods.QuadraticInterpolation(funcyion, 10, 1e-3, 1e-7);*/
+            //var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
+            //Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
+            //slojno.counter = 0;
+            //var r3 = slojno.Func(asdasd3);
             #endregion
-            Func<double, double> funk = (x) => Math.Pow(x-4,4)+2;
-            double result = Methods.QuadraticInterpolation(funk, 4, 1e-4);
             Console.WriteLine("Hello World!");
         }
     }
@@ -153,7 +160,7 @@ namespace MetodiOptimizatsii
                 xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
                 k++;
             }
-            Console.WriteLine(k);
+            Console.WriteLine($"Итерации метода парабол {k}");
             return xnext;
         }
         public static void findsectionwithminimum(Func<double, double> func, out double a, out double b, double x0, double delta, int maxiter)
@@ -250,7 +257,7 @@ namespace MetodiOptimizatsii
             int k = 0;
             Matrix A = func.Gesse(x0);//1+n+n^2
             Vector b = -func.grad(x0);//n+1
-            Console.WriteLine($"{k} {x0}");
+            Console.WriteLine($"Newton {k} {x0}");
             while (b.norm > eps && k < maxiter)
             {
                 SolveSlae(A, b);
@@ -573,6 +580,12 @@ namespace MetodiOptimizatsii
     }
     public class function
     {
+        public enum OneDimensionSearch
+        {
+            GoldenRatio,
+            QuadraticInterpollation
+        }
+        public OneDimensionSearch SearchType { get; set; } = OneDimensionSearch.GoldenRatio;
         public bool NumericDerivatives { get; set; } = false;
         public double diffeps { get; set; } = 1e-7;
         private Func<Vector, double> func;
@@ -658,9 +671,22 @@ namespace MetodiOptimizatsii
         {
             int n = x0.dim;
             Func<double, double> function = (double lam) => Func(x0 + lam * dir);
-            double a, b;
-            Methods.findsectionwithminimum(function, out a, out b, 1, 1e-2, 10000);
-            return Methods.Goldenratio(function, a, b, 1e-14);
+            double res = 0;
+            switch (SearchType)
+            {
+                case OneDimensionSearch.GoldenRatio:
+                    double a, b;
+                    Methods.findsectionwithminimum(function, out a, out b, 1, 1e-2, 10000);
+                    res = Methods.Goldenratio(function, a, b, 1e-14);
+                    break;
+                case OneDimensionSearch.QuadraticInterpollation:
+                    res = Methods.QuadraticInterpolation(function, 1, 1e-10);
+                    break;
+                default:
+                    break;
+            }
+
+            return res;
         }
 
         public function(Func<Vector, double> func, int dim, List<Func<Vector, double>> gradlist, List<List<Func<Vector, double>>> gesseList)
