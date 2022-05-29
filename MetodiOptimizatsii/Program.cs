@@ -69,8 +69,13 @@ namespace MetodiOptimizatsii
             Func<double, double> funcyion = (x) => Math.Pow(x - 2, 4);//x * x * x * x * x + 4 * x * x * x * x - 10 * x * x * x - 5 * x * x + 10 * x + 1
             double result = Methods.QuadraticInterpolation(funcyion, 10, 1e-3, 1e-7);*/
             #endregion
-            Func<double, double> funk = (x) => Math.Pow(x-4,4)+2;
-            double result = Methods.QuadraticInterpolation(funk, 4, 1e-4);
+            Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
+            function func = new function(ffunkk, 2);
+            func.NumericDerivatives = true;
+            //var res1 = Methods.Newton(func, new Vector(2, 10), 1e-5, 10000);
+            //var res2 = Methods.DavidonFletcherPauel(func, new Vector(2, 10), 1e-5, 10000,1);
+            Func<double, double> funk = (x) => Math.Pow(x - 4, 4) + 2;
+            double result = Methods.QuadraticInterpolation(funk, 2, 1e-4);
             Console.WriteLine("Hello World!");
         }
     }
@@ -140,9 +145,13 @@ namespace MetodiOptimizatsii
         public static double QuadraticInterpolation(Func<double, double> func, double x0, double eps)
         {
             int k = 0;
+            Console.WriteLine($"{x0}");
             double h = eps;
             double f0 = func(x0 - h), f1 = func(x0), f2 = func(x0 + h);
+            double b = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h));
+            double a = (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
             double xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+            Console.WriteLine($"{xnext}");
             k++;
             while (Math.Abs(x0 - xnext) > eps)
             {
@@ -150,8 +159,14 @@ namespace MetodiOptimizatsii
                 f0 = func(x0 - h);
                 f1 = func(x0);
                 f2 = func(x0 + h);
-                xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+                b = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h));
+                a = (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+                if (a != 0)
+                    xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+                else
+                    xnext = x0;
                 k++;
+                Console.WriteLine($"{xnext}");
             }
             Console.WriteLine(k);
             return xnext;
