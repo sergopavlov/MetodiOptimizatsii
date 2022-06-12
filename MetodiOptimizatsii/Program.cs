@@ -726,8 +726,17 @@ namespace MetodiOptimizatsii
         }
         static void PrintSimpex(int n, int m, double[][] SimplexTable, List<int> basis, List<int> nonbasis)
         {
+            for (int i = 0; i < n; i++)
+            {
+                Console.Write($"-x{nonbasis[i] + 1} ");
+            }
+            Console.WriteLine("1");
             for (int i = 0; i < m + 1; i++)
             {
+                if (i != m)
+                    Console.Write($"x{basis[i] + 1} ");
+                else
+                    Console.Write("Q ");
                 for (int j = 0; j < n + 1; j++)
                 {
                     Console.Write($"{SimplexTable[i][j]:f3} ");
