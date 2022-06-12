@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 
 namespace MetodiOptimizatsii
 {
@@ -18,66 +19,105 @@ namespace MetodiOptimizatsii
     {
         static void Main(string[] args)
         {
-            #region shit
-            double[] C = new double[] { 1, 2, 10, 5, 7, 9 };
-            double[] A = new double[] { 0, 0, 3, -7, 6, 6 };
-            double[] B = new double[] { -1, -4, -2, -6, -10, 1 };
-            Func<Vector, double> fank = (Vector x) =>
-                 {
-                     double res = 0;
-                     for (int i = 0; i < 6; i++)
-                     {
-                         res += -C[i] / (1 + (x.v[0] - A[i]) * (x.v[0] - A[i]) + (x.v[1] - B[i]) * (x.v[1] - B[i]));
-                     }
-                     return res;
-                 };
-            //List<Restriction> rests = new();
-            //List<UnequalityRestriction> rests2 = new();
-            //rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
-            //rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
-            Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
-            List<Func<Vector, double>> grad = new();
-            grad.Add((x) => -8 * (x.v[1] - x.v[0]) + 6 * (x.v[0] - 1));
-            grad.Add((x) => 8 * (x.v[1] - x.v[0]));
-            List<List<Func<Vector, double>>> Gesse = new();
-            Gesse.Add(new());
-            Gesse.Add(new());
-            Gesse[0].Add((x) => -2);
-            Gesse[0].Add((x) => -8);
-            Gesse[1].Add((x) => -8);
-            Gesse[1].Add((x) => 8);
-            function func = new function(ffunkk, 2, grad, Gesse);
-            //function slojno = new function(fank, 2);
-            //slojno.NumericDerivatives = true;
-            //slojno.diffeps = 1e-4;
-            func.NumericDerivatives = false;
-            func.diffeps = 1e-3;
-            Vector x0 = new Vector(2, 0);
-            x0.v[0] = 5;
-            x0.v[1] = -5;
-            func.SearchType = function.OneDimensionSearch.QuadraticInterpollation;
-            var r4 = Methods.Newton(func, x0, 1e-7, 100);
-            //var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
-            //var res2 = Methods.BoudaryFunctions(func, x0, rests2, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
-            //Vector a = new Vector(2, -10);
-            //Vector b = new Vector(2, 10);
-            //slojno.counter = 0;
+            /*          #region shit
+                      double[] C = new double[] { 1, 2, 10, 5, 7, 9 };
+                      double[] A = new double[] { 0, 0, 3, -7, 6, 6 };
+                      double[] B = new double[] { -1, -4, -2, -6, -10, 1 };
+                      Func<Vector, double> fank = (Vector x) =>
+                           {
+                               double res = 0;
+                               for (int i = 0; i < 6; i++)
+                               {
+                                   res += -C[i] / (1 + (x.v[0] - A[i]) * (x.v[0] - A[i]) + (x.v[1] - B[i]) * (x.v[1] - B[i]));
+                               }
+                               return res;
+                           };
+                      //List<Restriction> rests = new();
+                      //List<UnequalityRestriction> rests2 = new();
+                      //rests.Add(new UnequalityRestriction((Vector x) => x.v[0] + x.v[1] + 1));
+                      //rests.Add(new EqualityRestriction((Vector x) => x.v[1] - x.v[0] - 1));
+                      #region quadratic
+                      Func<Vector, double> ffunkk = (Vector x) => 4 * (x.v[1] - x.v[0]) * (x.v[1] - x.v[0]) + 3 * (x.v[0] - 1) * (x.v[0] - 1);
+                      List<Func<Vector, double>> grad = new();
+                      grad.Add((x) => -8 * (x.v[1] - x.v[0]) + 6 * (x.v[0] - 1));
+                      grad.Add((x) => 8 * (x.v[1] - x.v[0]));
+                      List<List<Func<Vector, double>>> Gesse = new();
+                      Gesse.Add(new());
+                      Gesse.Add(new());
+                      Gesse[0].Add((x) => 14);
+                      Gesse[0].Add((x) => -8);
+                      Gesse[1].Add((x) => -8);
+                      Gesse[1].Add((x) => 8);
+                      function func = new function(ffunkk, 2, grad, Gesse);
+                      #endregion
+                      #region NorQuadratic   
+                      Func<Vector, double> funcknonquad = (x) => 100 * (x.v[1] - x.v[0] * x.v[0]) * (x.v[1] - x.v[0] * x.v[0]) + (1 - x.v[0]) * (1 - x.v[0]);
+                      List<Func<Vector, double>> grad2 = new();
+                      grad2.Add((x) => -400 * x.v[0] * (x.v[1] - x.v[0] * x.v[0]) - 2 * (1 - x.v[0]));
+                      grad2.Add((x) => 200 * (x.v[1] - x.v[0] * x.v[0]));
+                      List<List<Func<Vector, double>>> Gesse2 = new();
+                      Gesse2.Add(new());
+                      Gesse2.Add(new());
+                      Gesse2[0].Add((x) => -400 * x.v[1] + 1200 * x.v[0] * x.v[0] + 2);
+                      Gesse2[0].Add((x) => -400 * x.v[0]);
+                      Gesse2[1].Add((x) => -400 * x.v[0]);
+                      Gesse2[1].Add((x) => 200);
+                      function funcnonquad = new function(funcknonquad, 2, grad2, Gesse2);
+                      #endregion
+                      //function slojno = new function(fank, 2);
+                      //slojno.NumericDerivatives = true;
+                      //slojno.diffeps = 1e-4;
+                      func.NumericDerivatives = false;
+                      funcnonquad.NumericDerivatives = false;
+                      Vector x0 = new Vector(2, 0);
+                      x0.v[0] = 5;
+                      x0.v[1] = -5;
+                      func.SearchType = function.OneDimensionSearch.GoldenRatio;
+                      funcnonquad.SearchType = function.OneDimensionSearch.GoldenRatio;
+                      var r4 = Methods.Newton(funcnonquad, x0, 1e-7, 100);
+                      Console.WriteLine($"{1e-7} {r4} {funcnonquad.counter}");
+                      //var res = Methods.PenaltyFunctions(func, x0, rests, 1e-6, 10000, TypesOfPenalty.Quadratic);//-1 0
+                      //var res2 = Methods.BoudaryFunctions(func, x0, rests2, 1e-15, 10000, TypesOfBoundary.Fractional);//-0.2632 -0.7368
+                      //Vector a = new Vector(2, -10);
+                      //Vector b = new Vector(2, 10);
+                      //slojno.counter = 0;
 
-            //var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
-            //Console.WriteLine(slojno.counter - 1);
-            //slojno.counter = 0;
-            //var r1 = slojno.Func(asdasd1);
+                      //var asdasd1 = Methods.SimpleRandomSearch(slojno, a, b, 1e0, 0.2);
+                      //Console.WriteLine(slojno.counter - 1);
+                      //slojno.counter = 0;
+                      //var r1 = slojno.Func(asdasd1);
 
-            //var asdasd2 = Methods.RandomSearch1(slojno, a, b, 10, 1e-2, x0);
-            //Console.WriteLine($"{asdasd2} {-slojno.Func(asdasd2)} {slojno.counter - 1}");
-            //slojno.counter = 0;
-            //var r2 = slojno.Func(asdasd2);
+                      //var asdasd2 = Methods.RandomSearch1(slojno, a, b, 10, 1e-2, x0);
+                      //Console.WriteLine($"{asdasd2} {-slojno.Func(asdasd2)} {slojno.counter - 1}");
+                      //slojno.counter = 0;
+                      //var r2 = slojno.Func(asdasd2);
 
-            //var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
-            //Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
-            //slojno.counter = 0;
-            //var r3 = slojno.Func(asdasd3);
-            #endregion
+                      //var asdasd3 = Methods.RandomSearch3(slojno, x0, 10, 1e-2);
+                      //Console.WriteLine($"{asdasd3} {-slojno.Func(asdasd3)} {slojno.counter - 1}");
+                      //slojno.counter = 0;
+                      //var r3 = slojno.Func(asdasd3);
+                      #endregion
+          */
+            int n = 2;
+            int m = 3;
+            List<double> Q = new();
+            Q.Add(1);
+            Q.Add(-2);
+            Q.Add(0);
+            List<List<double>> x = new();
+            x.Add(new());
+            x[0].Add(1);
+            x[0].Add(-1);
+            x[0].Add(0);
+            x.Add(new());
+            x[1].Add(-2);
+            x[1].Add(-1);
+            x[1].Add(3);
+            x.Add(new());
+            x[2].Add(-1);
+            x[2].Add(1);
+            x[2].Add(1);
+            Methods.SimplexMethod(n, Q, m, x);
             Console.WriteLine("Hello World!");
         }
     }
@@ -146,29 +186,34 @@ namespace MetodiOptimizatsii
         }
         public static double QuadraticInterpolation(Func<double, double> func, double x0, double eps)
         {
+            int maxiter = 100000;
             int k = 0;
-            Console.WriteLine($"{x0}");
+            //Console.WriteLine($"{x0}");
             double h = eps;
             double f0 = func(x0 - h), f1 = func(x0), f2 = func(x0 + h);
             double b = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h));
             double a = (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
+            if (a == 0)
+            {
+                return x0;
+            }
             double xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
-            Console.WriteLine($"{xnext}");
+            //Console.WriteLine($"{xnext}");
             k++;
-            while (Math.Abs(x0 - xnext) > eps)
+            while (Math.Abs(x0 - xnext) > eps && k < maxiter)
             {
                 x0 = xnext;
                 f0 = func(x0 - h);
                 f1 = func(x0);
                 f2 = func(x0 + h);
-                b = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h));
+                b = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h));
                 a = (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
                 if (a != 0)
                     xnext = (f0 * (2 * x0 + h) / (2 * h * h) - f1 * (2 * x0) / (h * h) + f2 * (2 * x0 - h) / (2 * h * h)) / (f0 / (h * h) - 2 * f1 / (h * h) + f2 / (h * h));
                 else
                     xnext = x0;
                 k++;
-                Console.WriteLine($"{xnext}");
+                //Console.WriteLine($"{xnext}");
             }
             Console.WriteLine($"Итерации метода парабол {k}");
             return xnext;
@@ -267,17 +312,17 @@ namespace MetodiOptimizatsii
             int k = 0;
             Matrix A = func.Gesse(x0);//1+n+n^2
             Vector b = -func.grad(x0);//n+1
-            Console.WriteLine($"Newton {k} {x0}");
+            //Console.WriteLine($"Newton {k} {x0}");
             while (b.norm > eps && k < maxiter)
             {
                 SolveSlae(A, b);
                 x0 = x0 + b * func.DirectionMinimum(x0, b);
                 k++;
-                Console.WriteLine($"{k} {x0}");
+                //Console.WriteLine($"{k} {x0}");
                 A = func.Gesse(x0);
                 b = -func.grad(x0);
             }
-            //Console.WriteLine($"Newton iterations: {k}");
+            Console.WriteLine($"Newton iterations: {k}");
             return x0;
         }
         public static Vector DavidonFletcherPauel(function func, Vector x0, double eps, int maxiter, double omega)
@@ -587,6 +632,123 @@ namespace MetodiOptimizatsii
             }
             return respoint;
         }
+        public static void SimplexMethod(int n, List<double> Q, int m, List<List<double>> x)
+        {
+            List<double> result = new List<double>();
+            List<int> basis = new();
+            List<int> nonbasis = new();
+            for (int i = 0; i < m; i++)
+            {
+                basis.Add(n + i);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                nonbasis.Add(i);
+                result.Add(0);
+            }
+            for (int i = 0; i < m; i++)
+            {
+                result.Add(x[i][n]);
+            }
+            double[][] SimplexTable = new double[m + 1][];
+            for (int i = 0; i < m + 1; i++)
+            {
+                SimplexTable[i] = new double[n + 1];
+            }
+            for (int i = 0; i < m; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    SimplexTable[i][j] = -x[i][j];
+                }
+                SimplexTable[i][n] = x[i][n];
+            }
+            for (int j = 0; j < n; j++)
+            {
+                SimplexTable[m][j] = -Q[j];
+            }
+            SimplexTable[m][n] = Q[n];
+            bool flag = true;
+            while (flag)
+            {
+                PrintSimpex(n, m, SimplexTable, basis, nonbasis);
+                flag = false;
+                for (int i = 0; i < n; i++)
+                {
+                    if (SimplexTable[m][i] > 0)
+                        flag = true;
+                }
+                if (flag == false)
+                {
+                    Console.WriteLine("Оптимальный план найден");
+                }
+                else
+                {
+                    Console.WriteLine("Выберите Разрешающий элемиент");
+                    var str = Console.ReadLine().Split(' ');
+                    int row = int.Parse(str[0]);
+                    int column = int.Parse(str[1]);
+                    JordanException(n, m, ref basis, ref nonbasis, ref SimplexTable, row, column);
+                }
+            }
+        }
+        public static void JordanException(int n, int m, ref List<int> basis, ref List<int> nonbasis, ref double[][] SimplexTable, int row, int column)
+        {
+            double EnablingElement = SimplexTable[row][column];
+            SimplexTable[row][column] = 1 / EnablingElement;
+            for (int i = 0; i < m + 1; i++)
+            {
+                if (i != row)
+                {
+                    SimplexTable[i][column] = -SimplexTable[i][column] / EnablingElement;
+                }
+            }
+            for (int j = 0; j < n + 1; j++)
+            {
+                if (j != column)
+                {
+                    SimplexTable[row][j] /= EnablingElement;
+                }
+            }
+            for (int i = 0; i < m + 1; i++)
+            {
+                for (int j = 0; j < n + 1; j++)
+                {
+                    if (i != row && j != column)
+                    {
+                        SimplexTable[i][j] += SimplexTable[i][column] * SimplexTable[row][j] * EnablingElement;
+                    }
+                }
+            }
+            int buf = basis[row];
+            basis[row] = nonbasis[column];
+            nonbasis[column] = buf;
+        }
+        static void PrintSimpex(int n, int m, double[][] SimplexTable, List<int> basis, List<int> nonbasis)
+        {
+            for (int i = 0; i < m + 1; i++)
+            {
+                for (int j = 0; j < n + 1; j++)
+                {
+                    Console.Write($"{SimplexTable[i][j]:f3} ");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("-----------");
+            for (int i = 0; i < n + m; i++)
+            {
+                if (nonbasis.Contains(i))
+                {
+                    Console.Write($"{0:f3} ");
+                }
+                else
+                {
+                    Console.Write($"{SimplexTable[basis.IndexOf(i)][n]:f3} ");
+                }
+            }
+            Console.WriteLine();
+            Console.WriteLine("-----------");
+        }
     }
     public class function
     {
@@ -690,7 +852,7 @@ namespace MetodiOptimizatsii
                     res = Methods.Goldenratio(function, a, b, 1e-14);
                     break;
                 case OneDimensionSearch.QuadraticInterpollation:
-                    res = Methods.QuadraticInterpolation(function, 1, 1e-10);
+                    res = Methods.QuadraticInterpolation(function, 1, 1e-12);
                     break;
                 default:
                     break;
