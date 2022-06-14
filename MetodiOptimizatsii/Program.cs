@@ -796,20 +796,20 @@ namespace MetodiOptimizatsii
             }
             Console.WriteLine("-------------");
             int[] indexes = new int[n];
+            Stack<int> q = new();
             bool flag = true;
             while (flag)
             {
                 bool flag1 = true;
-                SortedSet<int> q = new();
-                q.Add(0);
+                q.Clear();
+                q.Push(0);
                 for (int i = 0; i < n; i++)
                 {
                     indexes[i] = -1;
                 }
-                while (q.Count > 0 && flag)
+                while (q.Count > 0 && flag1)
                 {
-                    int cur = q.ElementAt(0);
-                    q.Remove(q.ElementAt(0));
+                    int cur = q.Pop();
                     for (int i = 1; i < n; i++)
                     {
                         if (FlowGraph[cur][i] > 0)
@@ -817,7 +817,7 @@ namespace MetodiOptimizatsii
                             if (indexes[i] == -1)
                             {
                                 indexes[i] = cur;
-                                q.Add(i);
+                                q.Push(i);
                                 if (i == n - 1)
                                 {
                                     flag1 = false;
