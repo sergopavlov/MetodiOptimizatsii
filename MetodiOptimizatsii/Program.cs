@@ -98,26 +98,41 @@ namespace MetodiOptimizatsii
                       //var r3 = slojno.Func(asdasd3);
                       #endregion
           */
-            int n = 2;
-            int m = 3;
-            List<double> Q = new();
-            Q.Add(1);
-            Q.Add(-2);
-            Q.Add(0);
-            List<List<double>> x = new();
-            x.Add(new());
-            x[0].Add(1);
-            x[0].Add(-1);
-            x[0].Add(0);
-            x.Add(new());
-            x[1].Add(-2);
-            x[1].Add(-1);
-            x[1].Add(3);
-            x.Add(new());
-            x[2].Add(-1);
-            x[2].Add(1);
-            x[2].Add(1);
-            Methods.SimplexMethod(n, Q, m, x);
+            int n = 8;
+            int[][] Graph = new int[n][];
+            for (int i = 0; i < n; i++)
+            {
+                Graph[i] = new int[n];
+            }
+            Graph[0][1] = 5;
+            Graph[0][2] = 9;
+            Graph[0][3] = 7;
+
+            Graph[1][2] = 4;
+            Graph[1][6] = 3;
+
+            Graph[2][1] = 5;
+            Graph[2][4] = 2;
+            Graph[2][5] = 6;
+            Graph[2][6] = 2;
+
+            Graph[3][5] = 4;
+            Graph[3][7] = 5;
+
+            Graph[4][2] = 1;
+            Graph[4][7] = 4;
+
+            Graph[5][2] = 3;
+            Graph[5][3] = 3;
+            Graph[5][4] = 3;
+            Graph[5][6] = 6;
+            Graph[5][7] = 6;
+
+            Graph[6][1] = 2;
+            Graph[6][2] = 1;
+            Graph[6][5] = 5;
+            Graph[6][7] = 8;
+            Methods.MaximumFlow(n, Graph);
             Console.WriteLine("Hello World!");
         }
     }
@@ -757,6 +772,119 @@ namespace MetodiOptimizatsii
             }
             Console.WriteLine();
             Console.WriteLine("-----------");
+        }
+        public static int MaximumFlow(int n, int[][] Graph)
+        {
+            int flow = 0;
+            int[][] FlowGraph = new int[n][];
+            for (int i = 0; i < n; i++)
+            {
+                FlowGraph[i] = new int[n];
+                for (int j = 0; j < n; j++)
+                {
+                    FlowGraph[i][j] = Graph[i][j];
+                }
+            }
+            Console.WriteLine("-------------");
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    Console.Write($"{FlowGraph[i][j]} ");
+                }
+                Console.WriteLine();
+            }
+            Console.WriteLine("-------------");
+            int[] indexes = new int[n];
+            bool flag = true;
+            while (flag)
+            {
+                bool flag1 = true;
+                SortedSet<int> q = new();
+                q.Add(0);
+                for (int i = 0; i < n; i++)
+                {
+                    indexes[i] = -1;
+                }
+                while (q.Count > 0 && flag)
+                {
+                    int cur = q.ElementAt(0);
+                    q.Remove(q.ElementAt(0));
+                    for (int i = 1; i < n; i++)
+                    {
+                        if (FlowGraph[cur][i] > 0)
+                        {
+                            if (indexes[i] == -1)
+                            {
+                                indexes[i] = cur;
+                                q.Add(i);
+                                if (i == n - 1)
+                                {
+                                    flag1 = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                if (indexes[n - 1] != -1)
+                {
+                    int theta = 0;
+                    int last = indexes[n - 1];
+                    theta = FlowGraph[last][n - 1];
+                    while (last != 0)
+                    {
+                        if (FlowGraph[indexes[last]][last] < theta)
+                            theta = FlowGraph[indexes[last]][last];
+                        last = indexes[last];
+                    }
+                    List<int> path = new();
+                    last = n - 1;
+                    path.Add(last);
+                    while (last != 0)
+                    {
+                        FlowGraph[indexes[last]][last] -= theta;
+                        FlowGraph[last][indexes[last]] += theta;
+                        last = indexes[last];
+                        path.Add(last);
+                    }
+                    Console.WriteLine($"theta = {theta}");
+                    for (int i = path.Count - 1; i >= 0; i--)
+                    {
+                        Console.Write($"{path[i]} ");
+                    }
+                    Console.WriteLine();
+                    Console.WriteLine("-------------");
+                    for (int i = 0; i < n; i++)
+                    {
+                        for (int j = 0; j < n; j++)
+                        {
+                            Console.Write($"{FlowGraph[i][j]} ");
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine("-------------");
+                }
+                else
+                {
+                    flag = false;
+                    Console.WriteLine($"Не удается найти путь из P0 в P{n}");
+                    Console.WriteLine("-------------");
+                    for (int i = 0; i < n; i++)
+                    {
+                        for (int j = 0; j < n; j++)
+                        {
+                            Console.Write($"{Graph[i][j] - FlowGraph[i][j]} ");
+                            if (Graph[i][j] - FlowGraph[i][j] > 0 && i == 0)
+                                flow += Graph[i][j] - FlowGraph[i][j];
+                        }
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine("-------------");
+                    Console.WriteLine($"Поток равен {flow}");
+                }
+            }
+            return flow;
         }
     }
     public class function
